@@ -1,5 +1,6 @@
-import 'package:chat_app/models/usuario.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:chat_app/models/usuario.dart';
 
 class UsuariosPage extends StatefulWidget {
   @override
@@ -7,6 +8,9 @@ class UsuariosPage extends StatefulWidget {
 }
 
 class _UsuariosPageState extends State<UsuariosPage> {
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
+
   final usuarios = [
     Usuario(
       uid: '1',
@@ -61,12 +65,28 @@ class _UsuariosPageState extends State<UsuariosPage> {
           )
         ],
       ),
-      body: ListView.separated(
-        physics: BouncingScrollPhysics(),
-        itemBuilder: (_, i) => _usuarioListTile(usuarios[i]),
-        separatorBuilder: (_, i) => Divider(),
-        itemCount: usuarios.length,
+      body: SmartRefresher(
+        controller: _refreshController,
+        enablePullDown: true,
+        onRefresh: _cargarUsuarios,
+        header: WaterDropHeader(
+          complete: Icon(
+            Icons.check,
+            color: Colors.blue[400],
+          ),
+          waterDropColor: Colors.blue[400],
+        ),
+        child: _listViewUsuarios(),
       ),
+    );
+  }
+
+  ListView _listViewUsuarios() {
+    return ListView.separated(
+      physics: BouncingScrollPhysics(),
+      itemBuilder: (_, i) => _usuarioListTile(usuarios[i]),
+      separatorBuilder: (_, i) => Divider(),
+      itemCount: usuarios.length,
     );
   }
 
@@ -76,6 +96,7 @@ class _UsuariosPageState extends State<UsuariosPage> {
       subtitle: Text(usuarios.email),
       leading: CircleAvatar(
         child: Text(usuarios.nombre.substring(0, 2)),
+        backgroundColor: Colors.blue[100],
       ),
       trailing: Container(
         width: 10,
@@ -86,5 +107,11 @@ class _UsuariosPageState extends State<UsuariosPage> {
         ),
       ),
     );
+  }
+
+  _cargarUsuarios() async {
+    await Future.delayed(Duration(milliseconds: 1000));
+    // if failed,use refreshFailed()
+    _refreshController.refreshCompleted();
   }
 }
